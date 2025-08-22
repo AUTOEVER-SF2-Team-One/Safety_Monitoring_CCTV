@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>얼굴 인증</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background-color: #eaf4ff;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #0077ff;
+      text-align: center;
+      margin-top: 0;
+      font-size: 32px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      margin-top: 2rem;
+    }
+
+    .video-section {
+      flex: 1;
+      min-width: 300px;
+      text-align: center;
+    }
+
+    .video-section img {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 119, 255, 0.3);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 14px;
+      background-color: #0077ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 119, 255, 0.35);
+    }
+
+    .entry-list {
+      flex: 0 0 35%;
+      min-width: 280px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 119, 255, 0.2);
+    }
+
+    .entry-list h3 {
+      color: #0077ff;
+      font-size: 24px;
+      margin-top: 0;
+      border-bottom: 2px solid #00aaff;
+      padding-bottom: 10px;
+    }
+
+    .entry-list ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .entry-list li {
+      padding: 8px;
+      margin-bottom: 8px;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+
+    .entry-list li:hover {
+      background-color: #d1e7ff;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .entry-list, .video-section {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>얼굴을 중앙에 맞춰주세요</h2>
+
+  <div class="container">
+    <!-- 영상 및 출근 버튼 -->
+    <div class="video-section">
+      <img src="{{ url_for('video_feed') }}" alt="얼굴 인식 영상" />
+
+      <form method="POST" action="/verify">
+        <button type="submit">출근</button>
+      </form>
+    </div>
+
+    <!-- 출근자 리스트 -->
+    <div class="entry-list">
+      <h3>✅ 출근자 리스트</h3>
+      {% if verified_users %}
+        <ul>
+          {% for name in verified_users  %}
+            <li>{{ name }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>아직 출근한 사람이 없습니다.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
+
