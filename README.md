@@ -5,7 +5,7 @@
 
 모델파일이 너무 커서 github에 올라가지 않습니다. 때문에 아래 링크로 직접 다운로드 받으시거나 아래 방법을 사용하십시오
 
-`./body/ 경로로 저장`
+`./ai/body/ 경로로 저장`
 https://drive.google.com/file/d/1-ZvAT3zgfrk2lHSAzikznbus-6E6iBhz/view?usp=drive_link
 https://drive.google.com/file/d/1jF5Yf-l3yqELDPcbg-Uu9Se93rlaJL3p/view?usp=drive_link
 https://drive.google.com/file/d/1BOenTL_Kj4VAkb7F-39n82L_YqcJZ01T/view?usp=sharing

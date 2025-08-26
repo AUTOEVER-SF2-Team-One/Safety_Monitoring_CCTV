@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CCTV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background-color: #f4f7fb;
+      font-family: 'Roboto', sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: #005B9F;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 32px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: nowrap;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .video-box {
+      width: 60%;
+      max-width: 800px;
+    }
+
+    .video-box img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 91, 159, 0.2);
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 35%;
+      min-width: 300px;
+    }
+
+    .entry-list {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 91, 159, 0.1);
+      width: 100%;
+    }
+
+    .entry-list h3 {
+      margin-top: 0;
+      color: #005B9F;
+      font-size: 24px;
+      border-bottom: 2px solid #00A9E0;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .entry-list ul {
+      list-style: none;
+      padding-left: 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .entry-list li {
+      margin: 10px 0;
+      padding: 8px;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .entry-list li:hover {
+      background-color: #d1e7ff;
+    }
+
+    .video-box-small img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 91, 159, 0.1);
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .video-box,
+      .right-panel,
+      .entry-list {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>1 공장</h2>
+
+  <div class="container">
+    <!-- 왼쪽: 큰 CCTV 영상 -->
+    <div class="video-box">
+      <img src="{{ url_for('cctv_feed') }}" alt="CCTV 영상" />
+    </div>
+
+    <!-- 오른쪽: 출근자 리스트 + 작은 영상 -->
+    <div class="right-panel">
+      <div class="entry-list">
+        <h3>✅ 출근자 리스트</h3>
+        <ul id="user-list">
+          <li>불러오는 중...</li>
+        </ul>
+      </div>
+
+      <div class="video-box-small">
+        <img src="{{ url_for('video_feed') }}" alt="CCTV 영상" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.IO 클라이언트 -->
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+  <script>
+    let no_hat_count = {};
+    let userList = document.getElementById('user-list');
+    userList.innerHTML = '';
+
+    const socket = io();  // WebSocket 연결
+
+    // 벌점 데이터 수신
+    socket.on('penalty_update', function(data) {
+      const userListItems = document.querySelectorAll('#user-list li');
+      no_hat_count = data;
+      userListItems.forEach(li => {
+        const userName = li.textContent.split(' (')[0];
+        if (no_hat_count[userName] !== undefined) {
+          li.textContent = `${userName} (벌점: ${no_hat_count[userName]})`;
+        }
+      });
+    });
+
+    function fetchVerifiedUsers() {
+      fetch('http://192.168.203.132:5000/users')
+        .then(response => response.json())
+        .then(userData => {
+          userList.innerHTML = '';
+          if (userData.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = '아직 입장자가 없습니다.';
+            userList.appendChild(li);
+          } else {
+            Object.values(userData).forEach(user => {
+              const li = document.createElement('li');
+              const penalty = no_hat_count[user] !== undefined ? no_hat_count[user] : 0;
+              li.textContent = `${user} (벌점: ${penalty})`;
+              userList.appendChild(li);
+            });
+          }
+        })
+        .catch(error => {
+          console.error('🚫 서버 요청 오류 (출근자):', error);
+        });
+    }
+
+    function getCurrentUserList() {
+      const listItems = document.querySelectorAll('#user-list li');
+      return Array.from(listItems).map(li => li.textContent.split(' (')[0]);
+    }
+
+    function sendUserListToServer(userData) {
+      fetch('http://192.168.203.132:5001/save_users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users: userData })
+      })
+      .then(response => response.json())
+      .then(result => {
+        console.log('✅ 서버 응답:', result);
+      })
+      .catch(error => {
+        console.error('🚫 서버 전송 오류:', error);
+      });
+    }
+
+    // 초기 실행 및 주기적 갱신
+    fetchVerifiedUsers();
+    sendUserListToServer(getCurrentUserList());
+    setInterval(fetchVerifiedUsers, 10000);
+    setInterval(() => {
+      sendUserListToServer(getCurrentUserList());
+    }, 10000);
+  </script>
+</body>
+</html>
