@@ -4,4 +4,5 @@ ai/body/person_model_yolov8m.pt
 ai/body/hat_model_v1.pt
 *.pt
 
-
+# DS_store
+*/.DS_store
