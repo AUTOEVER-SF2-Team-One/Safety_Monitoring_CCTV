@@ -4,5 +4,53 @@ ai/body/person_model_yolov8m.pt
 ai/body/hat_model_v1.pt
 *.pt
 
-# DS_store
-*/.DS_store
+# ################### #
+#  Global / General   #
+# ################### #
+# macOS
+.DS_Store
+
+# IDE - VSCode
+.vscode/
+
+# ################### #
+#   Backend (Spring)  #
+# ################### #
+# IntelliJ IDEA
+back/cctv/.idea/
+
+# Gradle
+back/cctv/.gradle/
+back/cctv/build/
+back/cctv/out/
+
+# Maven
+back/cctv/target/
+
+# Compiled files
+back/cctv/**/*.class
+back/cctv/**/*.jar
+back/cctv/**/*.war
+
+# ################### #
+#   Frontend (Vue)    #
+# ################### #
+# Node modules
+front/vue-cctv/node_modules/
+
+# Build output
+front/vue-cctv/dist/
+
+# Local env files
+front/vue-cctv/.env.local
+front/vue-cctv/.env.*.local
+
+# Log files
+front/vue-cctv/npm-debug.log*
+front/vue-cctv/yarn-debug.log*
+front/vue-cctv/yarn-error.log*
+
+# ################### #
+#      AI (Flask)     #
+# ################### #
+# Python virtual environment
