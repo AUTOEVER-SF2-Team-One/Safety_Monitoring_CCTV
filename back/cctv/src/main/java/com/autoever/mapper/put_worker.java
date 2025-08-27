@@ -1,4 +1,4 @@
 package com.autoever.mapper;
 
-public class post_worker {
+public class put_worker {
 }
