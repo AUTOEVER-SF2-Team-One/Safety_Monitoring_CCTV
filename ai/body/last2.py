@@ -1,4 +1,9 @@
+import sys
+sys.path.append('c:\\users\\한국전파진흥협회\\appdata\\local\\packages\\pythonsoftwarefoundation.python.3.11_qbz5n2kfra8p0\\localcache\\local-packages\\python311\\site-packages')
+
+from datetime import datetime
 from flask import Flask, render_template, Response, request
+import pymysql
 from flask_cors import CORS
 import cv2
 import numpy as np
@@ -6,21 +11,25 @@ from ultralytics import YOLO
 from flask_socketio import SocketIO, emit
 from sort.sort import Sort  # SORT 알고리즘 사용
 from PIL import Image, ImageDraw, ImageFont
-from get_pose_landmark_yolo import get_yolo_landmarks_from_image, initialize_yolo_model
+from yolo.get_pose_landmark_yolo import get_yolo_landmarks_from_image, initialize_yolo_model
 from collections import deque
 import joblib
 from typing import List
 import time  # 시간 측정용
 import winsound
+import os
+
 trr = [0, 0, 0, 0]
 # Flask 애플리케이션 생성
 app = Flask(__name__)
 CORS(app)  # CORS 허용 (크로스 도메인 요청 허용)
 socketio = SocketIO(app)  # Flask와 함께 SocketIO 객체 생성
 
-font_path = "NanumGothic.ttf"  # 폰트 파일 경로 (서버에 해당 폰트가 있어야 함)
+font_path = "C:\\Users\\한국전파진흥협회\\Desktop\\java\\새 폴더 (2)\\Safety_Monitoring_CCTV-main\\Safety_Monitoring_CCTV-main\\body\\NanumGothic.ttf"  # 폰트 파일 경로 (서버에 해당 폰트가 있어야 함)
 font = ImageFont.truetype(font_path, 20)  # 폰트 크기 20으로 설정
-
+#db계정 연결
+db = pymysql.connect(host='127.0.0.1', user='root', password='root', db='pleaseworkcompany', charset='utf8')
+cursor = db.cursor()
 
 #global
 # hat_count = 0
@@ -29,8 +38,11 @@ previous_hat_status = {}
 dic_hat_status = {}
 no_hat_start_time = {}
 hat_status = "No Hat"
+danger_start_time = 0
+fall_start_time = 0
 
-def box_base_center(box):
+#사각형 바닥의 중앙 좌표 뽑기
+def box_base_center(box): 
     x1, y1, x2, y2 = box   # 객체 추적된 (사람,지게차) 좌표
     cx = (x1 + x2) // 2    # x축 중앙 (사각형의 가로 중심)
     cy = y2                # y축 하단 좌표 (바닥)
@@ -39,7 +51,7 @@ def box_base_center(box):
 # - 두 점 사이의 유클리드 거리(직선 거리)를 계산
 def euclidean_distance(p1, p2):
     return np.linalg.norm(p1 - p2) # 두 점 간 거리 계산
-
+# 모자 착용 유무 판단
 def is_hat_in_person(person_box, hat_box, threshold=0.5):
     px1, py1, px2, py2 = person_box
     hx1, hy1, hx2, hy2 = hat_box
@@ -68,13 +80,13 @@ def is_hat_in_person(person_box, hat_box, threshold=0.5):
     return ratio > threshold
 
 # 모델 불러오기
-person_model = YOLO('person_model_yolov8m.pt')
-hat_model = YOLO('hat_model_v1.pt')
+person_model = YOLO('C:\\Users\\한국전파진흥협회\\Desktop\\java\\새 폴더 (2)\\Safety_Monitoring_CCTV-main\\Safety_Monitoring_CCTV-main\\body\\person_model_yolov8m.pt')
+hat_model = YOLO("C:\\Users\\한국전파진흥협회\\Desktop\\java\\새 폴더 (2)\\Safety_Monitoring_CCTV-main\\Safety_Monitoring_CCTV-main\\body\\hat_model_v1.pt")
 
 tracker = Sort()
 
 #cctv Cam
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # 의자 실제 높이 (m)와 초점 거리(픽셀)
 REAL_CHAIR_HEIGHT = 1.0
@@ -142,12 +154,18 @@ def send_penalty():
 
 # CCTV 영상 처리 함수
 def process_video():
+    global danger_start_time
+    global fall_start_time
     while cap.isOpened():
+        ISFALL = 0 #넘어진 사람이 있는지
+        ISHAT = 0 #모자를 안쓴 사람이 있는지
+        ISDANGER = 0 #위험지역에 있는 사람이 있는지
         if not paused:
             ret, frame = cap.read()
             if not ret:
                 break
-
+            frame_time = datetime.now().strftime("%Y%m%d%H%M%S.%d")[:-3]  # 밀리초까지 출력
+            print(f"📸 Frame captured at: {frame_time}")
             # 1) 사람 감지
             person_results = person_model(frame, verbose=False, conf = 0.6)[0]
             person_boxes_conf = []
@@ -157,11 +175,8 @@ def process_video():
                     conf = float(det.conf[0])
                     person_boxes_conf.append([x1, y1, x2, y2, conf])
 
-            # person_boxes_np = np.array(person_boxes_conf) if len(person_boxes_conf) > 0 else np.empty((0,5))
             person_boxes_np = np.array(person_boxes_conf) if len(person_boxes_conf) > 0 else None
             # 2) 사람 트래킹
-            # tracks = tracker.update(person_boxes_np)
-            # person_boxes_np가 None이 아니면 tracker.update()를 호출
             if person_boxes_np is not None:
                 tracks = tracker.update(person_boxes_np)
             else:
@@ -181,7 +196,23 @@ def process_video():
                 if cls == 56:
                     x1, y1, x2, y2 = map(int, det.xyxy[0])
                     chair_boxes.append([x1, y1, x2, y2])
-                    
+            # 5) 넘어짐 감지
+            classifier_model_path = 'yolo/xgb_yolo_model.joblib'
+            pose_detector = initialize_yolo_model()
+            fall_classifier = load_pose_model(classifier_model_path)
+            results = pose_detector(frame, verbose=False, conf=0.7)
+            annotated_frame = results[0].plot()
+            landmark_data = []
+            if results[0].keypoints and len(results[0].keypoints.xy) > 0:
+                for kps in results[0].keypoints:
+                    person_landmarks = []
+                    coords = kps.xyn[0]
+                    confs = kps.conf[0]
+                    for i in range(len(coords)):
+                        person_landmarks.append((coords[i][0].item(), coords[i][1].item(), confs[i].item()))
+                    landmark_data.append(person_landmarks)
+            is_fallen_current_frame = run(fall_classifier, landmark_data)
+
              # 이창열 : 트래킹 추적
             detected_track_ids = [int(track[4]) for track in tracks]  # 트래킹된 객체의 ID
             name_map = map_ids_to_names(detected_track_ids)  # ID에 해당하는 이름 매핑
@@ -190,25 +221,6 @@ def process_video():
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             pil_img = Image.fromarray(frame_rgb)
             draw = ImageDraw.Draw(pil_img)
-
-            '''
-            # 5) 트래킹된 사람별 모자 착용여부, 거리 경고 표시
-            # for track in tracks:
-            #     x1, y1, x2, y2, track_id = map(int, track)
-            #     name = name_map.get(track_id, f"ID{track_id}")
-            #     person_box = [x1, y1, x2, y2]
-
-            #     # 모자 착용 여부 판단
-            #     hat_status = "No Hat"
-            #     for hat in hat_boxes:
-            #         if is_hat_in_person(person_box, hat, threshold=0.5):
-            #             hat_status = "Hat"
-            #             break
-
-            #     color = (0, 255, 0) if hat_status == "Hat" else (0, 255, 255)  # 초록=모자 있음, 노랑=없음
-            #     label_text = f"{name}:{hat_status}"
-            # 모자 상태 카운트 초기화
-            '''
             
             global no_hat_count, hat_status, previous_hat_status, dic_hat_status
 
@@ -219,7 +231,7 @@ def process_video():
                 person_box = [x1, y1, x2, y2]
 
                 # 모자 착용 여부 판단
-                 # 모자 착용 여부 판단
+                # 모자 착용 여부 판단
                 hat_status = "No Hat"
                 # dic_hat_status[name] = "No Hat" 
                 for hat in hat_boxes:
@@ -232,13 +244,6 @@ def process_video():
                 color = (0, 255, 0) if hat_status == "Hat" else (0, 255, 255)  # 초록=모자 있음, 노랑=없음
                 label_text = f"{name}: {hat_status}"
                 
-                # if name not in no_hat_count:
-                #     previous_hat_status[name] = "No Hat"
-                #     # dic_hat_status[name] = "Hat"
-                #     no_hat_count[name] = 0
-                # if "사람" in name:
-                #     continue
-                
                  # `no_hat_count`에 해당 이름이 없다면 초기화
                 if name not in no_hat_count:
                     no_hat_count[name] = 0  # 값이 없을 때만 0으로 초기화
@@ -249,11 +254,6 @@ def process_video():
                     
                 if name not in no_hat_start_time:
                     no_hat_start_time[name] = None
-                    
-                # 모자 상태가 "No Hat"일 때만 카운트 증가
-                # if hat_status == "No Hat" and previous_hat_status[name] != "No Hat":
-                #     no_hat_count[name] += 1
-                #     send_penalty() # socket 통신
                 
                 if hat_status == "No Hat":
                     # 모자 벗기 시작한 시간을 기록
@@ -266,6 +266,7 @@ def process_video():
                             print(f"{name} 벌점 증가 ➕ {no_hat_count[name]}")
                             send_penalty()
                             no_hat_start_time[name] = None  # 벌점 추가 후 초기화
+                            ISHAT = 1 #db에 저장용
 
                 else:
                     # 모자를 쓰면 초기화
@@ -273,9 +274,6 @@ def process_video():
                     
                 previous_hat_status[name] = hat_status
                 
-                # dic_hat_status[name] = hat_status
-                
-                # print(f"previous_hat_status:{previous_hat_status}, no_hat_count:{no_hat_count}")
                 # 상태 출력 (디버깅용)
                 print(f"No Hat Count: {no_hat_count[name]},{name}")
 
@@ -307,24 +305,16 @@ def process_video():
                     
                     draw.text((x1, y1 - 10), label_text, font=font, fill=distance_color)
 
-                    # cv2.putText(frame, f"{real_distance_m:.2f} m", (mid_x, mid_y),
-                    #             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
-
-                    # 선 연결
-                    # cv2.line(frame, tuple(p_base), tuple(c_base), (255, 255, 0), 2)
-                    # draw.line([p_base, c_base], fill=(255, 255, 0), width=2)
-                    # print("p_base:", p_base)
-                    # print("c_base:", c_base)
-
                     draw.line([tuple(p_base), tuple(c_base)], fill=(255, 255, 0), width=2)
 
 
                     if dist_px < WARNING_DISTANCE:
-                        # cv2.putText(frame, 'WARNING: Person near Chair!', (x1, y1 - 40),
-                        #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                        # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                        # cv2.rectangle(frame, (c_box[0], c_box[1]), (c_box[2], c_box[3]), (0, 0, 255), 3)
-
+                        if danger_start_time == 0:
+                            danger_start_time = time.time()
+                        else:
+                            elapsed = time.time() - danger_start_time
+                            if elapsed > 3.0:
+                                ISDANGER = 1 #db에 저장용
                         # 사람 박스 강조
                         draw.rectangle([ (x1, y1), (x2, y2) ], outline=(0, 255, 0), width=3)
 
@@ -332,10 +322,55 @@ def process_video():
                         draw.rectangle([ (c_box[0], c_box[1]), (c_box[2], c_box[3]) ], outline=(0, 0, 255), width=3)
                         global trr
                         draw.rectangle([ (trr[0], trr[1]), (trr[2], trr[3]) ], outline=(0, 255, 255), width=3)
-                        
-                        
-
-
+                    else: #멀어지면 초기화
+                        danger_start_time = 0
+            if is_fallen_current_frame:
+                if fall_start_time == 0:
+                        fall_start_time = time.time()
+                else:
+                    elapsed = time.time() - fall_start_time
+                    if elapsed >= 3.0:  # ⏱️ 1초 이상 유지
+                        ISFALL = 1 #db에 저장용
+            else:
+                fall_start_time = 0
+        #기록 날짜 저장용
+        now = datetime.now()
+        now_date = now.strftime("%Y-%m-%d")
+        output_folder = f'accident_{now_date}'
+        os.makedirs(output_folder, exist_ok=True)
+        if ISFALL:
+            # 현재 폴더 안의 파일 개수 확인
+            existing_files = os.listdir(output_folder)
+            next_index = len(existing_files) + 1
+            filename = f'fall_{next_index}.jpg'
+            frame_filename = os.path.join(output_folder, filename)
+            photopath = os.path.join(output_folder, filename)
+            cv2.imwrite(frame_filename, frame)
+            sql = f"INSERT INTO `pleaseworkcompany`.`accident_log` (`ACCIDENTID`, `ACCIDENTDATE`, `LOGISDELETE`, `LOG_UPLOAD_DATE`, `LOG_PHOTO_PATH`) VALUES ('1', '{now_date}', '0', '{now_date}', '{filename}');"
+            cursor.execute(sql)
+            db.commit()
+        if ISHAT:
+            # 현재 폴더 안의 파일 개수 확인
+            existing_files = os.listdir(output_folder)
+            next_index = len(existing_files) + 1
+            filename = f'not_hat_{next_index}.jpg'
+            frame_filename = os.path.join(output_folder, filename)
+            photopath = os.path.join(output_folder, filename)
+            cv2.imwrite(frame_filename, frame)
+            sql = f"INSERT INTO `pleaseworkcompany`.`accident_log` (`ACCIDENTID`, `ACCIDENTDATE`, `LOGISDELETE`, `LOG_UPLOAD_DATE`, `LOG_PHOTO_PATH`) VALUES ('2', '{now_date}', '0', '{now_date}', '{filename}');"
+            cursor.execute(sql)
+            db.commit()
+        if ISDANGER:
+            # 현재 폴더 안의 파일 개수 확인
+            existing_files = os.listdir(output_folder)
+            next_index = len(existing_files) + 1
+            filename = f'danger_{next_index}.jpg'
+            frame_filename = os.path.join(output_folder, filename)
+            photopath = os.path.join(output_folder, filename)
+            cv2.imwrite(frame_filename, frame)
+            sql = f"INSERT INTO `pleaseworkcompany`.`accident_log` (`ACCIDENTID`, `ACCIDENTDATE`, `LOGISDELETE`, `LOG_UPLOAD_DATE`, `LOG_PHOTO_PATH`) VALUES ('3', '{now_date}', '0', '{now_date}', '{filename}');"
+            cursor.execute(sql)
+            db.commit()
         #draw 이미지 처리
         frame = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
@@ -456,18 +491,6 @@ def pose_video():
         # 3. 현재 프레임의 넘어짐 여부 판단
         is_fallen_current_frame = run(fall_classifier, landmark_data)
 
-        # 4. 현재 프레임의 결과를 detection_history에 추가
-        detection_history.append(is_fallen_current_frame)
-
-        # 5. 윈도우 내 '넘어짐' 탐지 횟수 계산
-        fall_count_in_window = sum(detection_history)
-
-        # 6. 최종 넘어짐 상태 판단
-        if fall_count_in_window >= FALL_THRESHOLD:
-            is_fall_confirmed = True
-            print(f"넘어짐 감지! (최근 {WINDOW_SIZE}개 프레임 중 {fall_count_in_window}번 감지)")
-        elif fall_count_in_window == 0:
-            is_fall_confirmed = False
         
         # 7. 최종 판단 결과에 따라 텍스트 표시
         if is_fall_confirmed:
