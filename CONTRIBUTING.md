@@ -178,10 +178,10 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
   * **핵심 도구**: **ESLint** (Linter), **Prettier** (Formatter), **Husky** & **lint-staged** (자동화)
   * **설치**:
     ```bash
-    # ESLint, Prettier 및 관련 플러그인 설치
+    # ESLint(Flat Config), Prettier 및 관련 플러그인 설치
     npm install -D eslint prettier eslint-plugin-vue @vue/eslint-config-prettier
 
-    # 자동화를 위한 Husky, lint-staged 설치
+    # 자동화를 위한 Husky(v9+), lint-staged 설치
     npm install -D husky lint-staged
     ```
   * **설정**:
@@ -195,13 +195,18 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
          "printWidth": 80
        }
        ```
-    2. **ESLint 설정 파일 (`.eslintrc.cjs`) 수정**: `extends` 배열에 `plugin:vue/vue3-essential`과 `@vue/prettier`를 추가하여 Prettier와 충돌을 방지합니다.
-    3. **Husky 설정**:
+    2. **ESLint 설정 파일 (`eslint.config.js`) 사용**: 최신 ESLint Flat Config 방식을 사용합니다. `@vue/eslint-config-prettier`를 포함하여 Prettier와 충돌을 방지합니다.
+    3. **Husky 설정 (v9+ 권장 방식)**:
        ```bash
-       # Husky 초기화
-       npx husky init
-       # pre-commit 훅 추가
-       npx husky add .husky/pre-commit "npx lint-staged"
+       # 1) package.json에 prepare 스크립트 추가
+       #    "scripts": { "prepare": "husky" }
+
+       # 2) prepare 실행 (또는 npm install 시 자동 실행)
+       npm run prepare
+
+       # 3) pre-commit 훅 파일 생성
+       echo 'npx lint-staged' > .husky/pre-commit
+       chmod +x .husky/pre-commit
        ```
     4. **lint-staged 설정 (`package.json`에 추가)**:
        ```json
@@ -212,7 +217,7 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
          ]
        }
        ```
-  * **사용법**: 위 설정이 완료되면, `git commit`을 시도할 때마다 staged 상태인 파일들에 대해 ESLint와 Prettier가 자동으로 실행되어 코드를 검사하고 수정합니다.
+  * **사용법**: 위 설정이 완료되면, `git commit` 시 **pre-commit** 훅이 실행되어 staged 파일에 대해 `lint-staged`가 **ESLint**와 **Prettier**를 자동 실행합니다.
 
 ---
 
