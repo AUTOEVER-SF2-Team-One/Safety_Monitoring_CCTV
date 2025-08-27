@@ -174,13 +174,45 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
 
 * **상태 관리**: 전역 상태 관리가 필요할 경우 **Pinia**를 사용합니다.
 
-* **린터 & 포맷터**:
+* **린터 & 포맷터 상세 설정**:
+  * **핵심 도구**: **ESLint** (Linter), **Prettier** (Formatter), **Husky** & **lint-staged** (자동화)
+  * **설치**:
+    ```bash
+    # ESLint, Prettier 및 관련 플러그인 설치
+    npm install -D eslint prettier eslint-plugin-vue @vue/eslint-config-prettier
 
-  * **Linter**: **ESLint** (`eslint-plugin-vue` 포함)를 사용하여 코드의 잠재적 오류를 방지합니다.
-
-  * **Formatter**: **Prettier**를 사용하여 일관된 코드 스타일을 유지합니다.
-
-* **자동화**: **Husky**와 **lint-staged**를 사용하여, `git commit` 시점에 자동으로 ESLint 검사와 Prettier 포맷팅이 실행되도록 강제합니다.
+    # 자동화를 위한 Husky, lint-staged 설치
+    npm install -D husky lint-staged
+    ```
+  * **설정**:
+    1. **Prettier 설정 파일 (`.prettierrc.json`) 생성**:
+       ```json
+       {
+         "singleQuote": true,
+         "semi": true,
+         "tabWidth": 2,
+         "trailingComma": "all",
+         "printWidth": 80
+       }
+       ```
+    2. **ESLint 설정 파일 (`.eslintrc.cjs`) 수정**: `extends` 배열에 `plugin:vue/vue3-essential`과 `@vue/prettier`를 추가하여 Prettier와 충돌을 방지합니다.
+    3. **Husky 설정**:
+       ```bash
+       # Husky 초기화
+       npx husky init
+       # pre-commit 훅 추가
+       npx husky add .husky/pre-commit "npx lint-staged"
+       ```
+    4. **lint-staged 설정 (`package.json`에 추가)**:
+       ```json
+       "lint-staged": {
+         "*.{js,ts,vue}": [
+           "eslint --fix",
+           "prettier --write"
+         ]
+       }
+       ```
+  * **사용법**: 위 설정이 완료되면, `git commit`을 시도할 때마다 staged 상태인 파일들에 대해 ESLint와 Prettier가 자동으로 실행되어 코드를 검사하고 수정합니다.
 
 ---
 
@@ -190,12 +222,54 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
 
 * **의존성 관리**: **Poetry**를 사용하여 패키지 의존성을 관리하고 가상 환경을 통일합니다.
 
-* **린터 & 포맷터**:
+* **린터 & 포맷터 상세 설정**:
+  * **핵심 도구**: **Black** (Formatter), **Flake8** (Linter), **Mypy** (Type Checker), **pre-commit** (자동화)
+  * **설치**:
+    ```bash
+    # Poetry를 사용하여 개발 의존성으로 도구들 추가
+    poetry add --group dev black flake8 mypy pytest
 
-  * **Formatter**: **Black**을 사용하여 코드 스타일을 강제 통일합니다.
+    # pre-commit 설치 (전역 또는 가상환경)
+    pip install pre-commit
+    ```
+  * **설정**:
+    1. **`pyproject.toml` 파일에 도구별 설정 추가**:
+       ```toml
+       [tool.black]
+       line-length = 88
 
-  * **Linter**: **Flake8**을 사용하여 PEP 8 위반 및 잠재적 오류를 검사합니다.
+       [tool.flake8]
+       max-line-length = 88
+       extend-ignore = "E203"
 
-  * **타입 체크**: **Mypy**를 도입하여 정적 타입 검사를 수행하고 코드의 안정성을 높입니다.
+       [tool.mypy]
+       strict = true
+       ```
+    2. **`.pre-commit-config.yaml` 파일 생성**:
+       ```yaml
+       repos:
+       -   repo: [https://github.com/pre-commit/pre-commit-hooks](https://github.com/pre-commit/pre-commit-hooks)
+           rev: v4.4.0
+           hooks:
+           -   id: trailing-whitespace
+           -   id: end-of-file-fixer
+           -   id: check-yaml
+       -   repo: [https://github.com/psf/black](https://github.com/psf/black)
+           rev: 23.3.0
+           hooks:
+           -   id: black
+       -   repo: [https://github.com/pycqa/flake8](https://github.com/pycqa/flake8)
+           rev: 6.0.0
+           hooks:
+           -   id: flake8
+       -   repo: [https://github.com/pre-commit/mirrors-mypy](https://github.com/pre-commit/mirrors-mypy)
+           rev: v1.3.0
+           hooks:
+           -   id: mypy
+       ```
+    3. **pre-commit 훅 활성화**:
+       ```bash
+       pre-commit install
+       ```
+  * **사용법**: 위 설정이 완료되면, `git commit`을 시도할 때마다 `.pre-commit-config.yaml`에 정의된 훅들이 자동으로 실행되어 코드를 검사하고 포맷팅합니다.
 
-* **자동화**: **pre-commit** 훅을 설정하여 커밋 시점에 Black, Flake8, Mypy가 자동으로 실행되도록 합니다.
