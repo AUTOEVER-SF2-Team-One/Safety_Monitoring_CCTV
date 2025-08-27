@@ -149,11 +149,22 @@ GitHub 이슈를 통해 모든 작업을 추적하고 관리합니다. 명확한
 
 * **DTO 사용**: Controller에서는 반드시 DTO(Data Transfer Object)를 사용하여 데이터를 주고받습니다. Service 계층에서 Entity와 DTO 간의 변환을 책임집니다.
 
-* **린터 & 포맷터**:
+* **린터 & 포맷터 상세 설정**:
 
   * **Linter**: **SonarLint**를 IDE에 설치하여 실시간으로 코드 품질을 검사합니다.
+    * **설치 방법 (IntelliJ 기준)**:
+      1. `File` > `Settings` > `Plugins` 로 이동합니다.
+      2. `Marketplace` 탭에서 `SonarLint`를 검색하여 설치 후 IDE를 재시작합니다.
+    * **사용법**:
+      - 설치 후 별도 설정 없이 코드를 작성하면 SonarLint가 잠재적 버그나 코드 스멜을 실시간으로 하이라이트 해줍니다.
+      - 문제 패널에서 제안하는 수정 가이드를 따라 코드를 개선합니다.
 
-  * **Formatter**: IntelliJ의 기본 포맷터를 사용하며, 팀 공통의 `formatter.xml` 설정 파일을 공유합니다.
+  * **Formatter**: IntelliJ의 기본 포맷터를 사용하며, 팀 공통의 `formatter.xml` 설정 파일을 공유하여 코드 스타일을 통일합니다.
+    * **설정 파일 공유**:
+      - **내보내기(Export)**: 팀 리더가 `File` > `Settings` > `Editor` > `Code Style`에서 `Export` > `IntelliJ IDEA code style XML`을 선택하여 `formatter.xml` 파일을 생성하고 Git 저장소에 공유합니다.
+      - **가져오기(Import)**: 팀원은 공유된 `formatter.xml` 파일을 다운로드 받은 후, 같은 메뉴에서 `Import Scheme`을 통해 적용합니다.
+    * **사용법**:
+      - 코드 작성 후 단축키 `Ctrl + Alt + L` (Windows/Linux) 또는 `Cmd + Option + L` (Mac)을 눌러 파일 전체를 포맷팅합니다.
 
 ---
 
