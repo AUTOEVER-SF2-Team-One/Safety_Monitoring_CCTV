@@ -64,6 +64,32 @@ const closeForm = () => {
 };
 
 /**
+ * @description 신규 근무자 데이터를 workers 배열에 추가합니다. (WorkerForm으로부터 이벤트 수신)
+ * @param {object} newWorker - WorkerForm에서 전달된 신규 근무자 데이터
+ */
+ const addWorker = (newWorker) => {
+  // 실제 애플리케이션에서는 백엔드 API로부터 ID를 받아야 합니다.
+  // 여기서는 임시로 고유한 ID를 생성합니다.
+  const workerWithId = { ...newWorker, id: Date.now() };
+  workers.value.push(workerWithId);
+  console.log('Added new worker:', workerWithId);
+  closeForm(); // 추가 후 폼 닫기
+};
+
+/**
+ * @description 기존 근무자 데이터를 수정합니다. (WorkerForm으로부터 이벤트 수신)
+ * @param {object} updatedWorker - WorkerForm에서 전달된 수정된 근무자 데이터
+ */
+ const updateWorker = (updatedWorker) => {
+  const index = workers.value.findIndex(w => w.id === updatedWorker.id);
+  if (index !== -1) {
+    workers.value[index] = updatedWorker;
+    console.log('Updated worker:', updatedWorker);
+  }
+  closeForm(); // 수정 후 폼 닫기
+};
+
+/**
  * @description 근무자 삭제 시 호출됩니다. (WorkerList로부터 이벤트 수신)
  * @param {number} workerId - 삭제할 근무자 ID
  */
@@ -96,6 +122,8 @@ const closeForm = () => {
         :is-edit-mode="isEditMode"
         :worker-data="selectedWorker"
         @cancel="closeForm"
+        @add-worker="addWorker"
+        @update-worker="updateWorker"
       />
       <div v-else class="form-placeholder">
         <p>근무자를 추가하거나 목록에서 선택해주세요.</p>
