@@ -15,6 +15,7 @@ public interface WorkerMapper {
     //Worker information register
     int insertWorker(WorkerModel worker);
     //Work information register
+    int insertWork(WorkerModel worker);
     //Worker information update
     int updateWorker(WorkerModel worker);
     //Work information update
