@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.autoever.mapper.WorkerMapper">
+    <select id="findAllWorker" resultType="com.autoever.model.WorkerModel">
+        SELECT *
+        FROM worker
+        ORDER BY idx;
+    </select>
+
+    <select id="findTodayWork" resultType="com.autoever.model.WorkerModel"
+            parameterType="String">
+        SELECT *
+        FROM worker
+        WHERE workerid IN (SELECT workerid
+                            from work
+                            WHERE work_date = #{today_date})
+        ORDER BY idx;
+    </select>
+
+    <insert id="insertWorker" parameterType="com.autoever.model.WorkerModel"
+            useGeneratedKeys="true" keyProperty="idx">
+        INSERT INTO `pleaseworkcompany`.`worker` (workerid, workername, workerrank, phonenumber, worker_upload_date)
+        VALUES (#{workerid}, #{workername}, #{workerrank}, #{phonenumber}, NOW());
+    </insert>
+
+    <insert id="insertWork" parameterType="com.autoever.model.WorkerModel"
+            useGeneratedKeys="true" keyProperty="idx">
+        INSERT INTO `pleaseworkcompany`.`work_date` (workerid, work_date, work_upload_date)
+        VALUES (#{workerid}, #{work_date}, NOW());
+    </insert>
+
+    <update id="updateWorker" parameterType="com.autoever.model.WorkerModel">
+        UPDATE worker
+        SET workername = #{workername}, workerrank = #{workerrank}, phonenumber = #{phonenumber}
+        WHERE workerid = #{workerid}
+    </update>
+
+    <delete id="deleteForUpdateDate" parameterType="int">
+        DELETE FROM work_date
+        WHERE workerid = #{workerid}
+    </delete>
+
+    <delete id="deleteWorker" parameterType="int">
+        DELETE FROM worker
+        WHERE workerid = #{param1}
+    </delete>
+    <delete id="deleteWork" parameterType="int">
+        DELETE FROM work_date
+        WHERE workerid = #{param1}
+    </delete>
+
+
+</mapper>
