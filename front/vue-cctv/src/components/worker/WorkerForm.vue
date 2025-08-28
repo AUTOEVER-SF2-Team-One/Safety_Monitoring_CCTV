@@ -1,5 +1,7 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { ref,reactive, watch } from 'vue';
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 /**
  * @file WorkerForm.vue
@@ -40,9 +42,14 @@ const formData = reactive({
   name: '',
   position: '',
   phone: '',
-  startDate: null,
-  endDate: null,
+  workingDates: [],
 });
+
+/**
+ * @description Datepicker와 v-model로 연결되어 선택된 모든 날짜를 배열로 가집니다.
+ * @type {import('vue').Ref<Date[]>}
+ */
+ const selectedDates = ref([]);
 
 // --- WATCHERS ---
 
@@ -56,7 +63,7 @@ watch(() => props.workerData, (newData) => {
     formData.name = newData.name || '';
     formData.position = newData.position || '';
     formData.phone = newData.phone || '';
-    // startDate, endDate, image 등도 동일하게 처리
+    selectedDates.value = newData.workingDates || [];
   } else {
     // workerData가 null이면 (예: 추가 모드 전환 시) 폼을 초기화합니다.
     Object.keys(formData).forEach(key => formData[key] = null);
@@ -64,8 +71,16 @@ watch(() => props.workerData, (newData) => {
     formData.name = '';
     formData.position = '';
     formData.phone = '';
+    selectedDates.value = [];
   }
 }, { immediate: true }); // 컴포넌트가 마운트될 때 즉시 실행
+
+/**
+ * @description 사용자가 날짜를 선택/해제할 때마다 그 값을 formData에 즉시 반영합니다.
+ */
+ watch(selectedDates, (newDates) => {
+  formData.workingDates = newDates || [];
+}, { deep: true }); // 배열 내부의 변경을 감지하기 위해 deep 옵션 사용
 
 // --- METHODS ---
 
@@ -125,10 +140,15 @@ const handleCancel = () => {
       </div>
       
       <div class="form-group">
-        <label>Date Range *</label>
-        <div class="date-picker-placeholder">
-          달력 컴포넌트가 여기에 표시됩니다.
-        </div>
+        <label for="workingDates">Working Dates *</label>
+        <Datepicker
+          id="workingDates"
+          v-model="selectedDates"
+          multi-dates
+          :enable-time-picker="false"
+          placeholder="Select all working dates"
+          auto-apply
+        />
       </div>
       
       <div class="form-actions">
