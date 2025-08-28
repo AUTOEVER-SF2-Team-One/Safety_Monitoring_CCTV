@@ -20,6 +20,15 @@ const props = defineProps({
   },
 });
 
+// --- EMITS ---
+
+/**
+ * @emits cancel - 사용자가 'Cancel' 버튼을 클릭했을 때 발생하는 이벤트입니다.
+ * @emits add-worker - '추가' 모드에서 폼 제출 시, 신규 근무자 데이터를 담아 발생하는 이벤트입니다.
+ * @emits update-worker - '수정' 모드에서 폼 제출 시, 수정된 근무자 데이터를 담아 발생하는 이벤트입니다.
+ */
+ const emit = defineEmits(['cancel', 'add-worker', 'update-worker']);
+
 // --- STATE ---
 
 /**
@@ -60,19 +69,26 @@ watch(() => props.workerData, (newData) => {
 
 // --- METHODS ---
 
-const handleSubmit = () => {
+/**
+ * @description 폼 제출(`submit`) 시 호출되는 이벤트 핸들러입니다.
+ * @description `isEditMode` 값에 따라 'update-worker' 또는 'add-worker' 이벤트를 발생시킵니다.
+ */
+ const handleSubmit = () => {
   if (props.isEditMode) {
-    console.log('수정 데이터 전송:', formData);
-    // 부모에게 'update-worker' 이벤트 emit
+    // 수정 모드: 기존 id를 포함한 formData를 부모에게 전달
+    emit('update-worker', { ...formData, id: props.workerData.id });
   } else {
-    console.log('추가 데이터 전송:', formData);
-    // 부모에게 'add-worker' 이벤트 emit
+    // 추가 모드: 새로운 formData를 부모에게 전달
+    emit('add-worker', { ...formData });
   }
 };
 
+/**
+ * @description 'Cancel' 버튼 클릭 시 호출되는 이벤트 핸들러입니다.
+ * @description 부모에게 'cancel' 이벤트를 발생시켜 폼을 닫도록 요청합니다.
+ */
 const handleCancel = () => {
-  console.log('폼 취소');
-  // 부모에게 'cancel' 이벤트 emit
+  emit('cancel');
 };
 </script>
 
