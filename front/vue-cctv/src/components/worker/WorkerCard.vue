@@ -43,10 +43,10 @@ const handleDelete = () => {
 
 /**
  * @description 카드 자체를 클릭했을 때 호출됩니다.
- * @description 부모에게 'select-worker' 이벤트를 발생시킵니다.
+ * @description 부모에게 'select-worker' 이벤트를 발생시킵니다. (ID 대신 객체 전체를 전달하도록 상위 컴포넌트에서 처리)
  */
-const handleSelect = () => {
-  emit('select-worker', props.worker.id);
+ const handleSelect = () => {
+  emit('select-worker'); // 인자 없이 이벤트만 발생
 }
 </script>
 

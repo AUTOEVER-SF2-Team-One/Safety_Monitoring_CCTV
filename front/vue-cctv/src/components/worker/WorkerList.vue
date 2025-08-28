@@ -2,61 +2,50 @@
 import { ref, computed } from 'vue';
 import WorkerCard from '@/components/worker/WorkerCard.vue';
 
+// --- PROPS ---
 /**
- * @file WorkerList.vue
- * @description 근무자 목록을 표시하고 관리하는 컴포넌트입니다.
- * @description 검색, 추가, 목록 렌더링 기능을 담당합니다.
+ * @props {Array<object>} workers - 부모 컴포넌트로부터 전달받은 전체 근무자 목록
  */
+const props = defineProps({
+  workers: {
+    type: Array,
+    required: true,
+  }
+});
+
+// --- EMITS ---
+/**
+ * @emits add-worker - 'Add Worker' 버튼 클릭 시 부모에게 알림
+ * @emits select-worker - 특정 근무자 카드 선택 시 부모에게 알림 (선택된 근무자 객체 전달)
+ * @emits delete-worker - 특정 근무자 삭제 시 부모에게 알림 (삭제할 근무자 ID 전달)
+ */
+const emit = defineEmits(['add-worker', 'select-worker', 'delete-worker']);
 
 // --- STATE ---
-
-/**
- * @type {import('vue').Ref<Array<object>>}
- * @description API로부터 받아온 근무자 목록을 저장하는 반응형 상태입니다.
- * @property {number} id - 근무자 고유 ID
- * @property {string} name - 근무자 이름
- * @property {string} position - 직책
- * @property {string} period - 근무 기간
- * @property {string} phone - 연락처
- */
-const workers = ref([
-  { id: 1, name: 'Sarah Johnson', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
-  { id: 2, name: 'Daniel Kim', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
-  { id: 3, name: 'Bake Cook', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' }
-]);
-
-/**
- * @type {import('vue').Ref<string>}
- * @description 사용자가 입력한 검색어를 저장하는 반응형 상태입니다.
- */
 const searchTerm = ref('');
 
 // --- COMPUTED ---
-
-/**
- * @type {import('vue').ComputedRef<Array<object>>}
- * @description `searchTerm`을 기반으로 `workers` 배열을 필터링한 결과를 반환하는 계산된 속성입니다.
- * @description 검색어가 없으면 전체 목록을, 있으면 이름에 검색어가 포함된 목록을 반환합니다.
- */
 const filteredWorkers = computed(() => {
   if (!searchTerm.value.trim()) {
-    return workers.value;
+    return props.workers;
   }
-  return workers.value.filter(worker =>
+  return props.workers.filter(worker =>
     worker.name.toLowerCase().includes(searchTerm.value.toLowerCase())
   );
 });
 
 // --- METHODS ---
-
-/**
- * @description 'Add Worker' 버튼 클릭 시 호출되는 이벤트 핸들러입니다.
- * @description 현재는 콘솔에 로그만 출력하며, 향후 부모 컴포넌트로 이벤트를 발생시켜
- * @description 근무자 추가 폼을 활성화하는 역할을 합니다.
- */
+// 이제 모든 핸들러는 부모에게 이벤트를 emit하는 역할만 합니다.
 const handleAddWorker = () => {
-  console.log('handleAddWorker called: 부모 컴포넌트에 "add-worker" 이벤트 emit 예정');
-  // emit('add-worker');
+  emit('add-worker');
+};
+
+const handleSelectWorker = (worker) => {
+  emit('select-worker', worker);
+};
+
+const handleDeleteWorker = (workerId) => {
+  emit('delete-worker', workerId);
 };
 </script>
 
@@ -74,7 +63,11 @@ const handleAddWorker = () => {
 
     <ul class="worker-cards">
       <li v-for="worker in filteredWorkers" :key="worker.id">
-        <WorkerCard :worker="worker" />
+        <WorkerCard 
+          :worker="worker" 
+          @select-worker="handleSelectWorker(worker)"
+          @delete-worker="handleDeleteWorker"
+        />
       </li>
     </ul>
     

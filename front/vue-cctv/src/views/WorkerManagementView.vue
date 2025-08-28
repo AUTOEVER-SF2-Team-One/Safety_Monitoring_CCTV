@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from 'vue';
 import WorkerList from '@/components/worker/WorkerList.vue';
 import WorkerForm from '@/components/worker/WorkerForm.vue';
 
@@ -16,6 +17,15 @@ import WorkerForm from '@/components/worker/WorkerForm.vue';
  * @type {import('vue').Ref<object | null>}
  */
 const selectedWorker = ref(null);
+
+/**
+ * @description WorkerList에 표시될 전체 근무자 목록입니다. (가짜 데이터)
+ */
+ const workers = ref([
+  { id: 1, employeeId: '201902927', name: 'Sarah Johnson', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
+  { id: 2, employeeId: '202011234', name: 'Daniel Kim', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
+  { id: 3, employeeId: '202105678', name: 'Bake Cook', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' }
+]);
 
 // --- COMPUTED ---
 
@@ -53,16 +63,43 @@ const closeForm = () => {
   selectedWorker.value = null;
 };
 
+/**
+ * @description 근무자 삭제 시 호출됩니다. (WorkerList로부터 이벤트 수신)
+ * @param {number} workerId - 삭제할 근무자 ID
+ */
+ const deleteWorker = (workerId) => {
+  if (confirm('정말로 이 근무자를 삭제하시겠습니까?')) {
+    workers.value = workers.value.filter(w => w.id !== workerId);
+    console.log(`Worker with id ${workerId} deleted.`);
+    // 폼이 열려있고, 삭제된 근무자가 선택된 근무자였다면 폼을 닫습니다.
+    if (selectedWorker.value && selectedWorker.value.id === workerId) {
+      closeForm();
+    }
+  }
+};
 </script>
 
 <template>
   <div class="worker-management-container">
     <section class="list-section">
-      <WorkerList />
+      <WorkerList
+        :workers="workers"
+        @add-worker="openAddForm"
+        @select-worker="openEditForm"
+        @delete-worker="deleteWorker"
+      />
     </section>
 
     <section class="form-section">
-      <WorkerForm />
+      <WorkerForm
+        v-if="formMode"
+        :is-edit-mode="isEditMode"
+        :worker-data="selectedWorker"
+        @cancel="closeForm"
+      />
+      <div v-else class="form-placeholder">
+        <p>근무자를 추가하거나 목록에서 선택해주세요.</p>
+      </div>
     </section>
   </div>
 </template>
