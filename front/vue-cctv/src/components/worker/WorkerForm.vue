@@ -63,7 +63,7 @@ watch(() => props.workerData, (newData) => {
     formData.name = newData.name || '';
     formData.position = newData.position || '';
     formData.phone = newData.phone || '';
-    selectedDates.value = newData.workingDates || [];
+    selectedDates.value = (newData.workingDates || []).map(date => new Date(date));
   } else {
     // workerData가 null이면 (예: 추가 모드 전환 시) 폼을 초기화합니다.
     Object.keys(formData).forEach(key => formData[key] = null);
@@ -142,12 +142,12 @@ const handleCancel = () => {
       <div class="form-group">
         <label for="workingDates">Working Dates *</label>
         <Datepicker
-          id="workingDates"
           v-model="selectedDates"
           multi-dates
           :enable-time-picker="false"
-          placeholder="Select all working dates"
+          inline
           auto-apply
+          class="inline-calendar"
         />
       </div>
       
