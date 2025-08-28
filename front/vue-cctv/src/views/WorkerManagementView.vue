@@ -22,9 +22,9 @@ const selectedWorker = ref(null);
  * @description WorkerList에 표시될 전체 근무자 목록입니다. (가짜 데이터)
  */
  const workers = ref([
-  { id: 1, employeeId: '201902927', name: 'Sarah Johnson', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-08-22', '2025-08-23', '2025-08-25'] },
-  { id: 2, employeeId: '202011234', name: 'Daniel Kim', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-09-01', '2025-09-02'] },
-  { id: 3, employeeId: '202105678', name: 'Bake Cook', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-08-28'] }
+ { id: 1, employeeId: '201902927', name: 'Sarah Johnson', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-08-22', '2025-08-23', '2025-08-25'], image: null },
+  { id: 2, employeeId: '202011234', name: 'Daniel Kim', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-09-01', '2025-09-02'], image: null },
+  { id: 3, employeeId: '202105678', name: 'Bake Cook', position: 'Safety Inspector', phone: '+1(555) 987-6543', workingDates: ['2025-08-28'], image: null }
 ]);
 
 // --- COMPUTED ---
