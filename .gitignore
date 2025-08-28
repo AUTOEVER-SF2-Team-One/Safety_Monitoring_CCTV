@@ -50,6 +50,9 @@ front/vue-cctv/npm-debug.log*
 front/vue-cctv/yarn-debug.log*
 front/vue-cctv/yarn-error.log*
 
+#husky
+front/vue-cctv/.husky/
+
 # ################### #
 #      AI (Flask)     #
 # ################### #
