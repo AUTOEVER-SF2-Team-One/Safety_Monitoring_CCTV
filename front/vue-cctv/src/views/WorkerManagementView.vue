@@ -106,20 +106,29 @@ const closeForm = () => {
 
 <style scoped>
 .worker-management-container {
-  display: flex; /* 자식 요소들을 가로로 배치 (Flexbox) */
-  gap: 2rem;   /* 두 섹션 사이의 간격 */
+  display: flex;
+  gap: 2rem;
   padding: 1rem;
+  height: calc(100vh - 2rem); /* 화면 높이를 채우도록 설정 */
 }
 
 .list-section {
-  /* flex-grow, flex-shrink, flex-basis를 한 번에 쓰는 속성입니다. */
-  /* 여기서는 전체 공간의 40%를 차지하도록 설정합니다. */
   flex: 0 0 40%;
-  max-width: 500px; /* 최대 너비 설정 */
+  max-width: 500px;
 }
 
 .form-section {
-  /* 나머지 공간을 모두 차지하도록 설정합니다. */
   flex: 1;
+}
+
+.form-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  color: #888;
 }
 </style>
