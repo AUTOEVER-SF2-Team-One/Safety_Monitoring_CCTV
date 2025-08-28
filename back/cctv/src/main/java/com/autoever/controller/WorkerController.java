@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/worker")
 public class WorkerController {
     private final WorkerService workerService;
     @Autowired
@@ -20,9 +20,14 @@ public class WorkerController {
         return workerService.getAllWorker();
     }
 
-    @GetMapping
-    public List<WorkerModel> getTodayWork(String today){
+    @GetMapping("/{today}")
+    public List<WorkerModel> getTodayWork(@PathVariable String today){
         return workerService.getTodayWork(today);
+    }
+
+    @PostMapping
+    public int modifyWorker(WorkerModel worker,  @RequestParam(required = false) Integer workerid, @RequestParam List<String> dates){
+        return workerService.modifyWorker(worker, workerid, dates);
     }
 
     @PutMapping
@@ -30,13 +35,8 @@ public class WorkerController {
         return workerService.registerWorker(worker, dates);
     }
 
-    @PostMapping
-    public int modifyWorker(WorkerModel worker, int workerid, List<String> dates){
-        return workerService.modifyWorker(worker, workerid, dates);
-    }
-
     @DeleteMapping
-    public int deleteWorker(int workerid){
+    public int deleteWorker(@RequestBody int workerid){
         return workerService.deleteWorker(workerid);
     }
 

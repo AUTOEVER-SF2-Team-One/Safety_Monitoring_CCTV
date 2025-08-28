@@ -44,11 +44,11 @@
 
     <delete id="deleteWorker" parameterType="int">
         DELETE FROM worker
-        WHERE workerid = #{workerid}
+        WHERE workerid = #{param1}
     </delete>
     <delete id="deleteWork" parameterType="int">
         DELETE FROM work_date
-        WHERE workerid = #{workerid}
+        WHERE workerid = #{param1}
     </delete>
 
 
