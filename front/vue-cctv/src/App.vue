@@ -1,11 +1,16 @@
-<script setup></script>
+<script setup>
+import { RouterView } from 'vue-router'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <main>
+    <RouterView />
+  </main>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* 기본적인 스타일을 여기에 추가할 수 있습니다. */
+main {
+  padding: 2rem;
+}
+</style>
