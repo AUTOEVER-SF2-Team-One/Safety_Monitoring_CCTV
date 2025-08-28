@@ -1,4 +1,4 @@
 package com.autoever.controller;
 
-public class get_worker {
+public class WorkerController {
 }
