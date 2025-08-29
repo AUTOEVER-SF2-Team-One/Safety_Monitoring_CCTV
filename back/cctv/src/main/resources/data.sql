@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS workers (
 CREATE TABLE IF NOT EXISTS working_dates (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     worker_id BIGINT NOT NULL,
-    work_date VARCHAR(10) NOT NULL,
+    work_date DATE NOT NULL,
     FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE CASCADE
 );
 

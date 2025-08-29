@@ -7,7 +7,7 @@ CCTV 안전 모니터링 시스템의 작업자 정보를 관리하는 Spring Bo
 - **Java 17**
 - **Spring Boot 3.5.5**
 - **MyBatis 3.0.5**
-- **H2 Database** (개발용)
+- **MySQL Database** (localhost:3306)
 - **Maven**
 
 ## 프로젝트 구조
@@ -48,6 +48,7 @@ src/main/resources/
 ### 1. 사전 요구사항
 - Java 17 이상
 - Maven 3.6 이상
+- MySQL 8.0 이상 (localhost:3306에서 실행 중)
 
 ### 2. 프로젝트 빌드
 ```bash
@@ -55,17 +56,23 @@ cd back/cctv
 mvn clean compile
 ```
 
-### 3. 애플리케이션 실행
+### 3. MySQL 데이터베이스 설정
+```bash
+# MySQL에 연결
+mysql -u root -p
+
+# 데이터베이스 생성 스크립트 실행
+source create_mysql_db.sql
+```
+
+### 4. 애플리케이션 실행
 ```bash
 mvn spring-boot:run
 ```
 
-### 4. 접속 확인
+### 5. 접속 확인
 - 애플리케이션: http://localhost:8080
-- H2 콘솔: http://localhost:8080/h2-console
-  - JDBC URL: `jdbc:h2:mem:testdb`
-  - Username: `sa`
-  - Password: (비어있음)
+- MySQL 데이터베이스: localhost:3306/cctv_db
 
 ## 데이터베이스 스키마
 

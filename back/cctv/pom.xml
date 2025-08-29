@@ -43,11 +43,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+		<!-- H2 데이터베이스 의존성 제거 - MySQL 사용 -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
