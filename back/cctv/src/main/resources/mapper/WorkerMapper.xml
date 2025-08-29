@@ -1,55 +1,79 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.autoever.mapper.WorkerMapper">
-    <select id="findAllWorker" resultType="com.autoever.model.WorkerModel">
-        SELECT *
-        FROM worker
-        ORDER BY idx;
+
+    <!-- 결과 매핑 -->
+    <resultMap id="WorkerResultMap" type="com.autoever.model.WorkerModel">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="name" column="name"/>
+        <result property="position" column="position"/>
+        <result property="phone" column="phone"/>
+        <result property="image" column="image"/>
+    </resultMap>
+
+    <!-- 모든 작업자 조회 -->
+    <select id="findAllWorkers" resultMap="WorkerResultMap">
+        SELECT id, employee_id, name, position, phone, image
+        FROM workers
+        ORDER BY id
     </select>
 
-    <select id="findTodayWork" resultType="com.autoever.model.WorkerModel"
-            parameterType="String">
-        SELECT *
-        FROM worker
-        WHERE workerid IN (SELECT workerid
-                            from work
-                            WHERE work_date = #{today_date})
-        ORDER BY idx;
+    <!-- ID로 특정 작업자 조회 -->
+    <select id="findWorkerById" parameterType="long" resultMap="WorkerResultMap">
+        SELECT id, employee_id, name, position, phone, image
+        FROM workers
+        WHERE id = #{id}
     </select>
 
-    <insert id="insertWorker" parameterType="com.autoever.model.WorkerModel"
-            useGeneratedKeys="true" keyProperty="idx">
-        INSERT INTO `pleaseworkcompany`.`worker` (workerid, workername, workerrank, phonenumber, worker_upload_date)
-        VALUES (#{workerid}, #{workername}, #{workerrank}, #{phonenumber}, NOW());
+    <!-- 사원번호로 작업자 조회 -->
+    <select id="findWorkerByEmployeeId" parameterType="string" resultMap="WorkerResultMap">
+        SELECT id, employee_id, name, position, phone, image
+        FROM workers
+        WHERE employee_id = #{employeeId}
+    </select>
+
+    <!-- 새로운 작업자 추가 -->
+    <insert id="insertWorker" parameterType="com.autoever.model.WorkerModel" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO workers (employee_id, name, position, phone, image)
+        VALUES (#{employeeId}, #{name}, #{position}, #{phone}, #{image})
     </insert>
 
-    <insert id="insertWork" parameterType="com.autoever.model.WorkerModel"
-            useGeneratedKeys="true" keyProperty="idx">
-        INSERT INTO `pleaseworkcompany`.`work_date` (workerid, work_date, work_upload_date)
-        VALUES (#{workerid}, #{work_date}, NOW());
-    </insert>
-
+    <!-- 작업자 정보 수정 -->
     <update id="updateWorker" parameterType="com.autoever.model.WorkerModel">
-        UPDATE worker
-        SET workername = #{workername}, workerrank = #{workerrank}, phonenumber = #{phonenumber}
-        WHERE workerid = #{workerid}
+        UPDATE workers
+        SET employee_id = #{employeeId},
+            name = #{name},
+            position = #{position},
+            phone = #{phone},
+            image = #{image}
+        WHERE id = #{id}
     </update>
 
-    <delete id="deleteForUpdateDate" parameterType="int">
-        DELETE FROM work_date
-        WHERE workerid = #{workerid}
+    <!-- 작업자 삭제 -->
+    <delete id="deleteWorker" parameterType="long">
+        DELETE FROM workers
+        WHERE id = #{id}
     </delete>
 
-    <delete id="deleteWorker" parameterType="int">
-        DELETE FROM worker
-        WHERE workerid = #{workerid}
-    </delete>
-    <delete id="deleteWork" parameterType="int">
-        DELETE FROM work_date
-        WHERE workerid = #{workerid}
+    <!-- 근무 날짜 추가 -->
+    <insert id="insertWorkingDate">
+        INSERT INTO working_dates (worker_id, work_date)
+        VALUES (#{workerId}, #{date})
+    </insert>
+
+    <!-- 근무 날짜 삭제 -->
+    <delete id="deleteWorkingDates" parameterType="long">
+        DELETE FROM working_dates
+        WHERE worker_id = #{workerId}
     </delete>
 
+    <!-- 근무 날짜 조회 -->
+    <select id="findWorkingDatesByWorkerId" parameterType="long" resultType="string">
+        SELECT work_date
+        FROM working_dates
+        WHERE worker_id = #{workerId}
+        ORDER BY work_date
+    </select>
 
 </mapper>
