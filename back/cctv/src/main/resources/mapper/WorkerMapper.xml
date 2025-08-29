@@ -28,7 +28,7 @@
     <insert id="insertWork" parameterType="com.autoever.model.WorkerModel"
             useGeneratedKeys="true" keyProperty="idx">
         INSERT INTO `pleaseworkcompany`.`work_date` (workerid, work_date, work_upload_date)
-        VALUES (#{workerid}, #{work_date}, NOW());
+        VALUES (#{workerid}, #{workDate}, NOW());
     </insert>
 
     <update id="updateWorker" parameterType="com.autoever.model.WorkerModel">

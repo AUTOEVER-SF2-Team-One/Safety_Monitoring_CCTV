@@ -1,99 +1,102 @@
 package com.autoever.model;
 
+import java.util.List;
+
 //delete to worker model
+
 public class WorkerModel {
 
-    //get from WORKER table
-    private int IDX;
-    private int WORKERID;
-    private String WORKERNAME;
-    private String WORKERRANK;
-    private String PHONENUMBER;
-    private String PHOTOPATH;
-    private int WORKERISDELETE;
-    private String WORKER_UPLOAD_DATE;
-    //get from WORK table
-    private int WORKID;
-    private String WORK_DATE;
+    private int idx;
+    private int workerid;
+    private String workername;
+    private String workerrank;
+    private String phonenumber;
+    private String photopath;
+    private int workerisdelete;
+    private String workerUploadDate;
 
-    public int getIDX() {
-        return IDX;
+    private int workid;
+    private String workDate;
+
+    public int getIdx() {
+        return idx;
     }
 
-    public void setIDX(int IDX) {
-        this.IDX = IDX;
+    public void setIdx(int idx) {
+        this.idx = idx;
     }
 
-    public int getWORKERID() {
-        return WORKERID;
+    public int getWorkerid() {
+        return workerid;
     }
 
-    public void setWORKERID(int WORKERID) {
-        this.WORKERID = WORKERID;
+    public void setWorkerid(int workerid) {
+        this.workerid = workerid;
     }
 
-    public String getWORKERNAME() {
-        return WORKERNAME;
+    public String getWorkername() {
+        return workername;
     }
 
-    public void setWORKERNAME(String WORKERNAME) {
-        this.WORKERNAME = WORKERNAME;
+    public void setWorkername(String workername) {
+        this.workername = workername;
     }
 
-    public String getWORKERRANK() {
-        return WORKERRANK;
+    public String getWorkerrank() {
+        return workerrank;
     }
 
-    public void setWORKERRANK(String WORKERRANK) {
-        this.WORKERRANK = WORKERRANK;
+    public void setWorkerrank(String workerrank) {
+        this.workerrank = workerrank;
     }
 
-    public String getPHONENUMBER() {
-        return PHONENUMBER;
+    public String getPhonenumber() {
+        return phonenumber;
     }
 
-    public void setPHONENUMBER(String PHONENUMBER) {
-        this.PHONENUMBER = PHONENUMBER;
+    public void setPhonenumber(String phonenumber) {
+        this.phonenumber = phonenumber;
     }
 
-    public String getPHOTOPATH() {
-        return PHOTOPATH;
+    public String getPhotopath() {
+        return photopath;
     }
 
-    public void setPHOTOPATH(String PHOTOPATH) {
-        this.PHOTOPATH = PHOTOPATH;
+    public void setPhotopath(String photopath) {
+        this.photopath = photopath;
     }
 
-    public int getWORKERISDELETE() {
-        return WORKERISDELETE;
+    public int getWorkerisdelete() {
+        return workerisdelete;
     }
 
-    public void setWORKERISDELETE(int WORKERISDELETE) {
-        this.WORKERISDELETE = WORKERISDELETE;
+    public void setWorkerisdelete(int workerisdelete) {
+        this.workerisdelete = workerisdelete;
     }
 
-    public String getWORKER_UPLOAD_DATE() {
-        return WORKER_UPLOAD_DATE;
+    public String getWorkerUploadDate() {
+        return workerUploadDate;
     }
 
-    public void setWORKER_UPLOAD_DATE(String WORKER_UPLOAD_DATE) {
-        this.WORKER_UPLOAD_DATE = WORKER_UPLOAD_DATE;
+    public void setWorkerUploadDate(String workerUploadDate) {
+        this.workerUploadDate = workerUploadDate;
     }
 
-    public int getWORKID() {
-        return WORKID;
+    public int getWorkid() {
+        return workid;
     }
 
-    public void setWORKID(int WORKID) {
-        this.WORKID = WORKID;
+    public void setWorkid(int workid) {
+        this.workid = workid;
     }
 
-    public String getWORK_DATE() {
-        return WORK_DATE;
+    public String getWorkDate() {
+        return workDate;
     }
 
-    public void setWORK_DATE(String WORK_DATE) {
-        this.WORK_DATE = WORK_DATE;
+    public void setWorkDate(String workDate) {
+        this.workDate = workDate;
     }
-
 }
+
+
