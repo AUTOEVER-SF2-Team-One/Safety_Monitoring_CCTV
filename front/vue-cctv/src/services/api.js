@@ -6,9 +6,15 @@ const { baseURL, timeout } = getApiConfig();
 
 console.log('API 설정:', { baseURL, timeout });
 
+// 개발 환경에서는 프록시 경로 사용 (CORS 우회)
+const isDevelopment = import.meta.env.DEV;
+const apiBaseURL = isDevelopment ? '/api' : baseURL;
+
+console.log('실제 API URL:', apiBaseURL);
+
 // axios 기본 설정
 const api = axios.create({
-  baseURL,
+  baseURL: apiBaseURL,
   timeout,
   headers: {
     'Content-Type': 'application/json',

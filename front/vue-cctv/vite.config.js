@@ -20,15 +20,24 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 5173,
-      host: 'localhost',
+      port: parseInt(env.VITE_SERVER_PORT) || 5173,
+      host: env.VITE_SERVER_HOST || 'localhost',
       strictPort: true, // 포트가 사용 중이면 에러 발생
       open: true, // 개발 서버 시작 시 브라우저 자동 열기
       cors: true, // CORS 활성화
+      proxy: {
+        // API 프록시 설정 (CORS 우회)
+        '/api': {
+          target: env.VITE_API_BASE_URL || 'http://localhost:8080',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: false,
+        }
+      }
     },
     preview: {
-      port: 5173,
-      host: 'localhost',
+      port: parseInt(env.VITE_SERVER_PORT) || 5173,
+      host: env.VITE_SERVER_HOST || 'localhost',
       strictPort: true,
     },
     define: {
