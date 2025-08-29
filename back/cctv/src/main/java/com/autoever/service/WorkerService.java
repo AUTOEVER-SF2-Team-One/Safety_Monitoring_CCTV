@@ -27,7 +27,7 @@ public class WorkerService {
     public int registerWorker(WorkerModel worker, List<String> dates){
         workerMapper.insertWorker(worker);
         for(String date : dates){
-            worker.setWORK_DATE(date);
+            worker.setWorkDate(date);
             workerMapper.insertWork(worker);
         }
         return 1;

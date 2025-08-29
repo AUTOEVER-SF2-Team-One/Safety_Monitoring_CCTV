@@ -1,5 +1,6 @@
 package com.autoever.controller;
 import com.autoever.model.WorkerModel;
+import com.autoever.model.forRegisterDTO;
 import com.autoever.service.WorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +27,18 @@ public class WorkerController {
     }
 
     @PostMapping
-    public int modifyWorker(WorkerModel worker,  @RequestParam(required = false) Integer workerid, @RequestParam List<String> dates){
-        return workerService.modifyWorker(worker, workerid, dates);
+    public int modifyWorker(@RequestBody forRegisterDTO request){
+        return workerService.modifyWorker(
+                request.getWorker(),
+                request.getWorkerid(),
+                request.getDates()
+        );
     }
 
     @PutMapping
-    public int registerWorker(WorkerModel worker, List<String> dates){
-        return workerService.registerWorker(worker, dates);
+    public int registerWorker(@RequestBody forRegisterDTO request){
+        return workerService.registerWorker(request.getWorker(),
+                request.getDates());
     }
 
     @DeleteMapping
