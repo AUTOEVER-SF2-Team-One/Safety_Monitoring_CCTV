@@ -7,9 +7,9 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5173",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5173",
     "test:unit": "vitest",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
