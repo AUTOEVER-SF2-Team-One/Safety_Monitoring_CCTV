@@ -1,99 +1,96 @@
 package com.autoever.model;
 
-//delete to worker model
+import java.util.List;
+
 public class WorkerModel {
+    private Long id;                    // 고유 식별자 (자동 생성)
+    private String employeeId;          // 사원번호 (고유값, 필수)
+    private String name;                // 이름 (필수)
+    private String position;            // 직책 (필수)
+    private String phone;               // 전화번호 (필수)
+    private List<String> workingDates; // 근무 날짜 목록 (선택)
+    private String image;               // 프로필 이미지 URL (선택)
 
-    //get from WORKER table
-    private int IDX;
-    private int WORKERID;
-    private String WORKERNAME;
-    private String WORKERRANK;
-    private String PHONENUMBER;
-    private String PHOTOPATH;
-    private int WORKERISDELETE;
-    private String WORKER_UPLOAD_DATE;
-    //get from WORK table
-    private int WORKID;
-    private String WORK_DATE;
+    // 기본 생성자
+    public WorkerModel() {}
 
-    public int getIDX() {
-        return IDX;
+    // 전체 필드 생성자
+    public WorkerModel(String employeeId, String name, String position, String phone, List<String> workingDates, String image) {
+        this.employeeId = employeeId;
+        this.name = name;
+        this.position = position;
+        this.phone = phone;
+        this.workingDates = workingDates;
+        this.image = image;
     }
 
-    public void setIDX(int IDX) {
-        this.IDX = IDX;
+    // Getter와 Setter
+    public Long getId() {
+        return id;
     }
 
-    public int getWORKERID() {
-        return WORKERID;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setWORKERID(int WORKERID) {
-        this.WORKERID = WORKERID;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public String getWORKERNAME() {
-        return WORKERNAME;
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
-    public void setWORKERNAME(String WORKERNAME) {
-        this.WORKERNAME = WORKERNAME;
+    public String getName() {
+        return name;
     }
 
-    public String getWORKERRANK() {
-        return WORKERRANK;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setWORKERRANK(String WORKERRANK) {
-        this.WORKERRANK = WORKERRANK;
+    public String getPosition() {
+        return position;
     }
 
-    public String getPHONENUMBER() {
-        return PHONENUMBER;
+    public void setPosition(String position) {
+        this.position = position;
     }
 
-    public void setPHONENUMBER(String PHONENUMBER) {
-        this.PHONENUMBER = PHONENUMBER;
+    public String getPhone() {
+        return phone;
     }
 
-    public String getPHOTOPATH() {
-        return PHOTOPATH;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public void setPHOTOPATH(String PHOTOPATH) {
-        this.PHOTOPATH = PHOTOPATH;
+    public List<String> getWorkingDates() {
+        return workingDates;
     }
 
-    public int getWORKERISDELETE() {
-        return WORKERISDELETE;
+    public void setWorkingDates(List<String> workingDates) {
+        this.workingDates = workingDates;
     }
 
-    public void setWORKERISDELETE(int WORKERISDELETE) {
-        this.WORKERISDELETE = WORKERISDELETE;
+    public String getImage() {
+        return image;
     }
 
-    public String getWORKER_UPLOAD_DATE() {
-        return WORKER_UPLOAD_DATE;
+    public void setImage(String image) {
+        this.image = image;
     }
 
-    public void setWORKER_UPLOAD_DATE(String WORKER_UPLOAD_DATE) {
-        this.WORKER_UPLOAD_DATE = WORKER_UPLOAD_DATE;
+    @Override
+    public String toString() {
+        return "WorkerModel{" +
+                "id=" + id +
+                ", employeeId='" + employeeId + '\'' +
+                ", name='" + name + '\'' +
+                ", position='" + position + '\'' +
+                ", phone='" + phone + '\'' +
+                ", workingDates=" + workingDates +
+                ", image='" + image + '\'' +
+                '}';
     }
-
-    public int getWORKID() {
-        return WORKID;
-    }
-
-    public void setWORKID(int WORKID) {
-        this.WORKID = WORKID;
-    }
-
-    public String getWORK_DATE() {
-        return WORK_DATE;
-    }
-
-    public void setWORK_DATE(String WORK_DATE) {
-        this.WORK_DATE = WORK_DATE;
-    }
-
 }

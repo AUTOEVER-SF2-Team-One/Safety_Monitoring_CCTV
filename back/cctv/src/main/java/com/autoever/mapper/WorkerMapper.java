@@ -8,22 +8,30 @@ import java.util.List;
 
 @Mapper
 public interface WorkerMapper {
-    //Worker information list findAll
-    List<WorkerModel> findAllWorker();
-    //Work informaion list Today
-    List<WorkerModel> findTodayWork(String today_date);
-    //Worker information register
+    // 모든 작업자 조회
+    List<WorkerModel> findAllWorkers();
+    
+    // ID로 특정 작업자 조회
+    WorkerModel findWorkerById(@Param("id") Long id);
+    
+    // 사원번호로 작업자 조회 (중복 체크용)
+    WorkerModel findWorkerByEmployeeId(@Param("employeeId") String employeeId);
+    
+    // 새로운 작업자 추가
     int insertWorker(WorkerModel worker);
-    //Work information register
-    int insertWork(WorkerModel worker);
-    //Worker information update
+    
+    // 작업자 정보 수정
     int updateWorker(WorkerModel worker);
-    //Work information update
-    int deleteForUpdateDate(@Param("workerid") int workerid);
-    //Worker information delete
-    int deleteWorker(@Param("WORKERID") int workerid);
-    //Work informaion delete
-    int deleteWork(@Param("WORKERID") int workerid);
-
-
+    
+    // 작업자 삭제
+    int deleteWorker(@Param("id") Long id);
+    
+    // 근무 날짜 추가
+    int insertWorkingDate(@Param("workerId") Long workerId, @Param("date") String date);
+    
+    // 근무 날짜 삭제
+    int deleteWorkingDates(@Param("workerId") Long workerId);
+    
+    // 근무 날짜 조회
+    List<String> findWorkingDatesByWorkerId(@Param("workerId") Long workerId);
 }
