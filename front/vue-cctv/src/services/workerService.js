@@ -10,7 +10,7 @@ export const workerService = {
    */
   async getAllWorkers() {
     try {
-      const response = await api.get('/api/workers');
+      const response = await api.get('/workers');
       return response.data;
     } catch (error) {
       console.error('작업자 목록 조회 실패:', error);
@@ -25,7 +25,7 @@ export const workerService = {
    */
   async getWorkerById(id) {
     try {
-      const response = await api.get(`/api/workers/${id}`);
+      const response = await api.get(`/workers/${id}`);
       return response.data;
     } catch (error) {
       console.error('작업자 조회 실패:', error);
@@ -40,7 +40,7 @@ export const workerService = {
    */
   async createWorker(workerData) {
     try {
-      const response = await api.post('/api/workers', workerData);
+      const response = await api.post('/workers', workerData);
       return response.data;
     } catch (error) {
       console.error('작업자 생성 실패:', error);
@@ -56,7 +56,7 @@ export const workerService = {
    */
   async updateWorker(id, workerData) {
     try {
-      const response = await api.put(`/api/workers/${id}`, workerData);
+      const response = await api.put(`/workers/${id}`, workerData);
       return response.data;
     } catch (error) {
       console.error('작업자 수정 실패:', error);
@@ -71,7 +71,7 @@ export const workerService = {
    */
   async deleteWorker(id) {
     try {
-      await api.delete(`/api/workers/${id}`);
+      await api.delete(`/workers/${id}`);
     } catch (error) {
       console.error('작업자 삭제 실패:', error);
       throw error;
