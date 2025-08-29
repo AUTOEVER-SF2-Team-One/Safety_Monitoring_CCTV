@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import WorkerList from '@/components/worker/WorkerList.vue';
 import WorkerForm from '@/components/worker/WorkerForm.vue';
+import { workerService } from '@/services/workerService.js';
 
 // --- STATE ---
 
@@ -19,13 +20,19 @@ import WorkerForm from '@/components/worker/WorkerForm.vue';
 const selectedWorker = ref(null);
 
 /**
- * @description WorkerList에 표시될 전체 근무자 목록입니다. (가짜 데이터)
+ * @description WorkerList에 표시될 전체 근무자 목록입니다.
  */
- const workers = ref([
-  { id: 1, employeeId: '201902927', name: 'Sarah Johnson', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
-  { id: 2, employeeId: '202011234', name: 'Daniel Kim', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' },
-  { id: 3, employeeId: '202105678', name: 'Bake Cook', position: 'Safety Inspector', period: '2025.08.22-2025.09.05', phone: '+1(555) 987-6543' }
-]);
+const workers = ref([]);
+
+/**
+ * @description 로딩 상태를 관리합니다.
+ */
+const isLoading = ref(false);
+
+/**
+ * @description 에러 메시지를 관리합니다.
+ */
+const errorMessage = ref('');
 
 // --- COMPUTED ---
 
@@ -33,7 +40,35 @@ const selectedWorker = ref(null);
  * @description 폼이 '수정' 모드인지 여부를 계산합니다.
  * @returns {boolean}
  */
- const isEditMode = computed(() => formMode.value === 'edit');
+const isEditMode = computed(() => formMode.value === 'edit');
+
+// --- LIFECYCLE ---
+
+/**
+ * @description 컴포넌트 마운트 시 작업자 목록을 로드합니다.
+ */
+onMounted(async () => {
+  await loadWorkers();
+});
+
+// --- METHODS (API Calls) ---
+
+/**
+ * @description 백엔드에서 작업자 목록을 로드합니다.
+ */
+const loadWorkers = async () => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    const data = await workerService.getAllWorkers();
+    workers.value = data;
+  } catch (error) {
+    errorMessage.value = '작업자 목록을 불러오는데 실패했습니다.';
+    console.error('작업자 목록 로드 실패:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 
 // --- METHODS (Event Handlers) ---
@@ -64,42 +99,69 @@ const closeForm = () => {
 };
 
 /**
- * @description 신규 근무자 데이터를 workers 배열에 추가합니다. (WorkerForm으로부터 이벤트 수신)
+ * @description 신규 근무자 데이터를 백엔드에 추가합니다. (WorkerForm으로부터 이벤트 수신)
  * @param {object} newWorker - WorkerForm에서 전달된 신규 근무자 데이터
  */
- const addWorker = (newWorker) => {
-  // 실제 애플리케이션에서는 백엔드 API로부터 ID를 받아야 합니다.
-  // 여기서는 임시로 고유한 ID를 생성합니다.
-  const workerWithId = { ...newWorker, id: Date.now() };
-  workers.value.push(workerWithId);
-  console.log('Added new worker:', workerWithId);
-  closeForm(); // 추가 후 폼 닫기
+const addWorker = async (newWorker) => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    const createdWorker = await workerService.createWorker(newWorker);
+    workers.value.push(createdWorker);
+    console.log('Added new worker:', createdWorker);
+    closeForm(); // 추가 후 폼 닫기
+  } catch (error) {
+    errorMessage.value = '작업자 추가에 실패했습니다.';
+    console.error('작업자 추가 실패:', error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 /**
- * @description 기존 근무자 데이터를 수정합니다. (WorkerForm으로부터 이벤트 수신)
+ * @description 기존 근무자 데이터를 백엔드에서 수정합니다. (WorkerForm으로부터 이벤트 수신)
  * @param {object} updatedWorker - WorkerForm에서 전달된 수정된 근무자 데이터
  */
- const updateWorker = (updatedWorker) => {
-  const index = workers.value.findIndex(w => w.id === updatedWorker.id);
-  if (index !== -1) {
-    workers.value[index] = updatedWorker;
-    console.log('Updated worker:', updatedWorker);
+const updateWorker = async (updatedWorker) => {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    const result = await workerService.updateWorker(updatedWorker.id, updatedWorker);
+    const index = workers.value.findIndex(w => w.id === updatedWorker.id);
+    if (index !== -1) {
+      workers.value[index] = result;
+      console.log('Updated worker:', result);
+    }
+    closeForm(); // 수정 후 폼 닫기
+  } catch (error) {
+    errorMessage.value = '작업자 수정에 실패했습니다.';
+    console.error('작업자 수정 실패:', error);
+  } finally {
+    isLoading.value = false;
   }
-  closeForm(); // 수정 후 폼 닫기
 };
 
 /**
- * @description 근무자 삭제 시 호출됩니다. (WorkerList로부터 이벤트 수신)
+ * @description 근무자를 백엔드에서 삭제합니다. (WorkerList로부터 이벤트 수신)
  * @param {number} workerId - 삭제할 근무자 ID
  */
- const deleteWorker = (workerId) => {
+const deleteWorker = async (workerId) => {
   if (confirm('정말로 이 근무자를 삭제하시겠습니까?')) {
-    workers.value = workers.value.filter(w => w.id !== workerId);
-    console.log(`Worker with id ${workerId} deleted.`);
-    // 폼이 열려있고, 삭제된 근무자가 선택된 근무자였다면 폼을 닫습니다.
-    if (selectedWorker.value && selectedWorker.value.id === workerId) {
-      closeForm();
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      await workerService.deleteWorker(workerId);
+      workers.value = workers.value.filter(w => w.id !== workerId);
+      console.log(`Worker with id ${workerId} deleted.`);
+      // 폼이 열려있고, 삭제된 근무자가 선택된 근무자였다면 폼을 닫습니다.
+      if (selectedWorker.value && selectedWorker.value.id === workerId) {
+        closeForm();
+      }
+    } catch (error) {
+      errorMessage.value = '작업자 삭제에 실패했습니다.';
+      console.error('작업자 삭제 실패:', error);
+    } finally {
+      isLoading.value = false;
     }
   }
 };
@@ -107,6 +169,18 @@ const closeForm = () => {
 
 <template>
   <div class="worker-management-container">
+    <!-- 에러 메시지 표시 -->
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+      <button @click="errorMessage = ''" class="error-close-btn">×</button>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>처리 중...</p>
+    </div>
+
     <section class="list-section">
       <WorkerList
         :workers="workers"
@@ -158,5 +232,67 @@ const closeForm = () => {
   border-radius: 8px;
   background-color: #f9f9f9;
   color: #888;
+}
+
+/* 에러 메시지 스타일 */
+.error-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #f44336;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.error-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+}
+
+.error-close-btn:hover {
+  opacity: 0.8;
+}
+
+/* 로딩 오버레이 스타일 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  color: white;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

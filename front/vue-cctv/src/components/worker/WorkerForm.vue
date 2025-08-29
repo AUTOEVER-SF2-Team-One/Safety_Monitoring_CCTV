@@ -1,5 +1,7 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { ref,reactive, watch } from 'vue';
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 /**
  * @file WorkerForm.vue
@@ -40,9 +42,32 @@ const formData = reactive({
   name: '',
   position: '',
   phone: '',
-  startDate: null,
-  endDate: null,
+  workingDates: [],
 });
+
+/**
+ * @description Datepicker와 v-model로 연결되어 선택된 모든 날짜를 배열로 가집니다.
+ * @type {import('vue').Ref<Date[]>}
+ */
+ const selectedDates = ref([]);
+
+ /**
+ * @description 사용자가 선택한 이미지 파일 객체를 저장하는 ref입니다.
+ * @type {import('vue').Ref<File|null>}
+ */
+const imageFile = ref(null);
+
+/**
+ * @description 선택된 이미지의 미리보기용 임시 URL을 저장하는 ref입니다.
+ * @type {import('vue').Ref<string|null>}
+ */
+const imageUrl = ref(null);
+
+/**
+ * @description 파일 입력을 위한 <input type="file"> DOM 엘리먼트의 참조(reference)입니다.
+ * @type {import('vue').Ref<HTMLInputElement|null>}
+ */
+ const fileInput = ref(null);
 
 // --- WATCHERS ---
 
@@ -56,7 +81,8 @@ watch(() => props.workerData, (newData) => {
     formData.name = newData.name || '';
     formData.position = newData.position || '';
     formData.phone = newData.phone || '';
-    // startDate, endDate, image 등도 동일하게 처리
+    selectedDates.value = (newData.workingDates || []).map(date => new Date(date));
+    imageUrl.value = newData.image || null;
   } else {
     // workerData가 null이면 (예: 추가 모드 전환 시) 폼을 초기화합니다.
     Object.keys(formData).forEach(key => formData[key] = null);
@@ -64,10 +90,48 @@ watch(() => props.workerData, (newData) => {
     formData.name = '';
     formData.position = '';
     formData.phone = '';
+    selectedDates.value = [];
+    imageUrl.value = null;
+    imageFile.value = null;
   }
 }, { immediate: true }); // 컴포넌트가 마운트될 때 즉시 실행
 
+/**
+ * @description 사용자가 날짜를 선택/해제할 때마다 그 값을 formData에 즉시 반영합니다.
+ */
+ watch(selectedDates, (newDates) => {
+  formData.workingDates = newDates || [];
+}, { deep: true }); // 배열 내부의 변경을 감지하기 위해 deep 옵션 사용
+
 // --- METHODS ---
+
+/**
+ * @function triggerFileInput
+ * @description '사진 변경' 버튼 클릭 시, 숨겨진 파일 input 엘리먼트를 프로그래매틱하게 클릭하여 파일 선택창을 엽니다.
+ */
+ const triggerFileInput = () => {
+  fileInput.value.click();
+};
+
+/**
+ * @function handleImageUpload
+ * @description 파일 input의 변경 이벤트를 처리합니다. 사용자가 파일을 선택하면 해당 파일을 상태에 저장하고,
+ * 미리보기를 위한 임시 URL을 생성합니다.
+ * @param {Event} event - 파일 input에서 발생한 change 이벤트 객체.
+ */
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    imageFile.value = file; // 파일 객체 저장
+
+    // 기존에 생성된 Object URL이 있다면 메모리 누수 방지를 위해 해제합니다.
+    if (imageUrl.value) {
+      URL.revokeObjectURL(imageUrl.value);
+    }
+    // 선택된 파일로부터 새로운 Object URL을 생성하여 미리보기에 사용합니다.
+    imageUrl.value = URL.createObjectURL(file);
+  }
+};
 
 /**
  * @description 폼 제출(`submit`) 시 호출되는 이벤트 핸들러입니다.
@@ -75,11 +139,12 @@ watch(() => props.workerData, (newData) => {
  */
  const handleSubmit = () => {
   if (props.isEditMode) {
+    const dataToEmit = { ...formData, image: imageUrl.value };
     // 수정 모드: 기존 id를 포함한 formData를 부모에게 전달
-    emit('update-worker', { ...formData, id: props.workerData.id });
+    emit('update-worker', { ...dataToEmit, id: props.workerData.id });
   } else {
     // 추가 모드: 새로운 formData를 부모에게 전달
-    emit('add-worker', { ...formData });
+    emit('add-worker', { ...dataToEmit });
   }
 };
 
@@ -97,11 +162,28 @@ const handleCancel = () => {
     <form @submit.prevent="handleSubmit">
       <div class="form-group image-uploader">
         <div class="image-preview">
-          </div>
+            <img v-if="imageUrl" :src="imageUrl" alt="Image preview" />
+        </div>
         <div class="image-info">
           <p>Please upload square image, size less than 100KB</p>
-          <button type="button" class="choose-file-btn">Choose File</button>
-          <span>No File Chosen</span>
+
+          <input 
+            type="file" 
+            ref="fileInput" 
+            @change="handleImageUpload" 
+            style="display: none" 
+            accept="image/*"
+          />
+          
+          <button 
+            type="button" 
+            class="choose-file-btn" 
+            @click="triggerFileInput"
+          >
+            Choose File
+          </button>
+          
+          <span>{{ imageFile ? imageFile.name : 'No File Chosen' }}</span>
         </div>
       </div>
       
@@ -125,17 +207,20 @@ const handleCancel = () => {
       </div>
       
       <div class="form-group">
-        <label>Date Range *</label>
-        <div class="date-picker-placeholder">
-          달력 컴포넌트가 여기에 표시됩니다.
-        </div>
+        <label for="workingDates">Working Dates *</label>
+        <Datepicker
+          v-model="selectedDates"
+          multi-dates
+          :enable-time-picker="false"
+          inline
+          auto-apply
+          class="inline-calendar"
+        />
       </div>
       
       <div class="form-actions">
-        <button type="button" class="cancel-btn" @click="handleCancel">Cancel</button>
-        <button type="submit" class="submit-btn">
-          {{ isEditMode ? 'Edit' : 'Add' }}
-        </button>
+        <button type="button" class="cancel-btn" @click="$emit('cancel')">Cancel</button>
+        <button type="submit" class="submit-btn">{{ isEditMode ? '수정' : '추가' }}</button>
       </div>
     </form>
   </div>
@@ -167,7 +252,6 @@ const handleCancel = () => {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  /* 👇 박스 크기 계산 방식을 일관성 있게 하여 정렬 오류를 방지합니다. */
   box-sizing: border-box; 
 }
 
@@ -177,13 +261,31 @@ const handleCancel = () => {
   align-items: center;
 }
 
+/* --- ▼▼▼ 이미지 관련 보강된 스타일 ▼▼▼ --- */
 .image-preview {
   width: 100px;
   height: 100px;
   background-color: #f0f0f0;
   border: 1px dashed #ccc;
   border-radius: 4px;
+  /* 이미지가 중앙에 위치하도록 flex 속성 추가 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 이미지가 영역을 벗어나지 않도록 overflow: hidden 추가 */
+  overflow: hidden;
 }
+
+/* 미리보기 이미지 자체에 대한 스타일 추가 */
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  /* 이미지가 비율을 유지하면서 꽉 차도록 object-fit: cover 적용 */
+  object-fit: cover;
+}
+/* --- ▲▲▲ 이미지 관련 보강된 스타일 ▲▲▲ --- */
+
+
 .image-info {
   display: flex;
   flex-direction: column;
@@ -200,14 +302,11 @@ const handleCancel = () => {
   gap: 1rem;
 }
 
-
-/* 👇 [핵심 수정] 이 부분을 통해 정렬과 간격 문제를 동시에 해결합니다. */
 .fields-grid {
-  display: grid;                  /* Grid 레이아웃을 사용합니다. */
-  grid-template-columns: 1fr 1fr; /* 1:1 비율의 동일한 컬럼 2개를 생성합니다. */
-  column-gap: 1.5rem;             /* 컬럼과 컬럼 사이에 1.5rem의 간격을 만듭니다. */
+  display: grid;                 
+  grid-template-columns: 1fr 1fr; 
+  column-gap: 1.5rem;   
 }
-
 
 .date-picker-placeholder {
   height: 200px;
